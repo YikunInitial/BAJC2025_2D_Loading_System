@@ -1,0 +1,11 @@
+{
+  "total_freight_cars": 27,
+  "destinations": [
+    {
+      "destination": "未知",
+      "product_count": 131,
+      "freight_cars_used": 27,
+      "average_loading_rate_percent": 7103.99
+    }
+  ]
+}

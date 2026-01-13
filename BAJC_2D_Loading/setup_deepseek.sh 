@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# ========== 1. 创建 Conda 环境 ==========
+echo "Creating conda environment: deepseek-env"
+conda create -n deepseek-env python=3.10 -y
+conda activate deepseek-env
+
+# ========== 2. 安装 PyTorch（CUDA 11.8） ==========
+echo "Installing PyTorch with CUDA 11.8 support"
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# ========== 3. 安装 HuggingFace Transformers + Accelerate ==========
+echo "Installing Transformers and Accelerate"
+pip install transformers accelerate
+
+# ========== 4. 创建运行目录 ==========
+echo "Creating project directory: ~/deepseek-llm"
+mkdir -p ~/deepseek-llm
+cd ~/deepseek-llm
+
+# ========== 5. 下载 DeepSeek 模型（会自动在首次运行时触发） ==========
+echo "Setup complete. You can now run inference using 'deepseek_agent.py'"

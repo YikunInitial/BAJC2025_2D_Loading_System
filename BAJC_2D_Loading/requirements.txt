@@ -1,0 +1,111 @@
+Install the following lib:
+
+fastapi
+uvicorn
+pandas
+openpyxl
+python-multipart
+openai
+python-dotenv
+
+**************************
+Run:
+
+cd BAJC_2D_Loading
+
+In terminal input:
+
+uvicorn main:app --reload
+
+Then run the APP
+
+Go to:
+http://127.0.0.1:8000/docs
+
+Stop last process: lsof -i :8000
+
+COMMAND   PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+python3  1234  yikunyang   ...   TCP *:8000 (LISTEN)
+
+kill -9 1234
+
+Run LLM Agent:
+
+uvicorn LLM_Agent:app --reload --port 8001
+
+http://127.0.0.1:8001/docs
+
+1. 先按目的地相同分组。✅
+2. 相同目的地进行优化分配。
+Constraints:
+1. freight_car.length (长度)> the sum of (product.outer_diameter)
+2. freight_car.width > the sum of (product.width)
+3. freight_car.max_heavy > the sum of (product.gross_weight)
+4. 轴重平衡：计算钢卷对两个转向架对受力贡献F1,F2.两个转向架的承重不得大于车载重量的1/2: F1<max_heavy/2, F2<max_heavy/2，且前后差在2t以内: |F1 - F2| < 2t
+5. 中线平衡：若两个钢卷需要并排，并排钢卷重差不得大于1t
+6. 对角平衡：如果两转向架上并排装载的卷钢间卷重超过1t时，应满足对角线对称装载，使车辆对角线的两两卷钢间卷重差不大于1t
+
+Method：
+1. 将所有钢卷按毛重降序排序；
+2. 遍历钢卷：
+    a. 查找可能并排组合；
+    b. 分配槽位（考虑并排组）；
+    c. 计算插入后平衡得分；
+    d. 选择得分最高的位置插入；
+3. 检查六大约束是否满足；
+4. 如未满足，执行局部搜索或替换；
+
+优先对每个分组的 Product 列表：
+
+Step 1：预处理所有产品，按重量降序排序
+Step 2：尝试形成可并排的组合组（满足：重量差≤1t，宽度和≤车宽）
+Step 3：将未并排的钢卷作为单件，合并形成最终“放置单位组”（单件或并排对）
+
+Step 4：将这些组，按总重量从大到小排序
+Step 5：用“对称放置”策略将组一个个排入车皮（中间先放，左右依次扩展）
+
+Step 6：每放一个组，更新：
+    - 累计总长度
+    - 各转向架受力（用于轴重平衡）
+    - 对于并排组：更新中线/对角线检查
+
+Step 7：如果当前车皮放不下，开启新车皮
+
+
+优化目标：
+最小化车皮数量（主目标）
+
+📊 输出评估指标：
+🚋 车皮总数
+
+⚖️ 每车皮的载重利用率（每车 gross_weight / max_heavy）
+
+🧮 轴重平衡情况：F1、F2 + 差值
+
+➖ 中线平衡检查（若存在并排：|w1-w2| ≤ 1t）
+
+❌ 对角线平衡检查（并排时是否对称：|FL-RR| ≤ 1t，|FR-RL| ≤ 1t）
+
+简单方案：启发式局部搜索+回退重试机制
+
+中等方案：回溯+剪枝搜索
+
+复杂方案：元启发式算法：模拟退火/强化学习
+
+模拟退火算法：
+函数名	                                    功能
+generate_initial_solution(products)	贪心或对称启发式装载，形成初始车皮组合
+perturb(solution)	                随机扰动操作：交换、移除并排、跨车移动
+evaluate(solution)	                计算能量函数：车皮数量 + 平衡违约惩罚
+check_constraints(solution)	        检查是否满足六条约束
+simulated_annealing(products)	    主调度函数，返回最终优化方案
+
+加一组多数据的实验，扩一下数据。产品规格增加，大小。
+输出的格式，给一个instructions
+
+
+API:
+cd steel-loading-ui
+
+npm run dev
+http://localhost:5173/
